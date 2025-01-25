@@ -1,21 +1,39 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 
 const DEFAULT_POMODORO_TIME = 25 * 60;
 
 function usePomodoro() {
   const [time, setTime] = useState(DEFAULT_POMODORO_TIME);
   const [isRunning, setIsRunning] = useState(false);
+  const [completedPomodoros, setCompletedPomodoros] = useState(0);
+  const isCompletingRef = useRef(false);
 
-  const reset = () => {
+  const handleCompletion = useCallback(() => {
+    if (isCompletingRef.current) return;
+    isCompletingRef.current = true;
+    setIsRunning(false);
+    setCompletedPomodoros((prev) => prev + 1);
+    // Reset the flag after all state updates are processed
+    setTimeout(() => {
+      isCompletingRef.current = false;
+    }, 0);
+  }, []);
+
+  const resetTimer = () => {
     setTime(DEFAULT_POMODORO_TIME);
     setIsRunning(false);
   };
 
-  const start = () => {
+  const resetAll = () => {
+    resetTimer();
+    setCompletedPomodoros(0);
+  };
+
+  const startTimer = () => {
     setIsRunning(true);
   };
 
-  const stop = () => {
+  const stopTimer = () => {
     setIsRunning(false);
   };
 
@@ -25,11 +43,11 @@ function usePomodoro() {
     if (isRunning && time > 0) {
       intervalId = setInterval(() => {
         setTime((prevTime) => {
-          if (prevTime <= 1) {
-            setIsRunning(false);
-            return 0;
+          const newTime = prevTime - 1;
+          if (newTime === 0) {
+            handleCompletion();
           }
-          return prevTime - 1;
+          return newTime;
         });
       }, 1000);
     }
@@ -39,7 +57,7 @@ function usePomodoro() {
         clearInterval(intervalId);
       }
     };
-  }, [isRunning, time]);
+  }, [isRunning, time, handleCompletion]);
 
   const progress = (time / DEFAULT_POMODORO_TIME) * 100;
 
@@ -47,10 +65,13 @@ function usePomodoro() {
     time,
     progress,
     isRunning,
-    start,
-    stop,
-    reset,
+    completedPomodoros,
+    startTimer,
+    stopTimer,
+    resetTimer,
+    resetAll,
     setTime,
+    setCompletedPomodoros,
   };
 }
 

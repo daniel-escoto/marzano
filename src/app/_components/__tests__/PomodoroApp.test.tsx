@@ -3,9 +3,9 @@ import userEvent from "@testing-library/user-event";
 import PomodoroApp from "../PomodoroApp";
 
 // Mock the usePomodoro hook
-const mockStart = jest.fn();
-const mockStop = jest.fn();
-const mockReset = jest.fn();
+const mockStartTimer = jest.fn();
+const mockStopTimer = jest.fn();
+const mockResetTimer = jest.fn();
 let mockIsRunning = false;
 
 jest.mock("../../_hooks/usePomodoro", () => ({
@@ -14,9 +14,9 @@ jest.mock("../../_hooks/usePomodoro", () => ({
     time: 1500,
     progress: 100,
     isRunning: mockIsRunning,
-    start: mockStart,
-    stop: mockStop,
-    reset: mockReset,
+    startTimer: mockStartTimer,
+    stopTimer: mockStopTimer,
+    resetTimer: mockResetTimer,
   }),
 }));
 
@@ -26,9 +26,9 @@ jest.mock("../../_util/formatTime", () => ({
 
 describe("PomodoroApp", () => {
   beforeEach(() => {
-    mockStart.mockClear();
-    mockStop.mockClear();
-    mockReset.mockClear();
+    mockStartTimer.mockClear();
+    mockStopTimer.mockClear();
+    mockResetTimer.mockClear();
     mockIsRunning = false;
   });
 
@@ -58,7 +58,7 @@ describe("PomodoroApp", () => {
 
     // Click Start
     await user.click(toggleButton);
-    expect(mockStart).toHaveBeenCalledTimes(1);
+    expect(mockStartTimer).toHaveBeenCalledTimes(1);
 
     // Update mock to simulate running state
     mockIsRunning = true;
@@ -69,7 +69,7 @@ describe("PomodoroApp", () => {
 
     // Click Stop
     await user.click(screen.getByText("Stop"));
-    expect(mockStop).toHaveBeenCalledTimes(1);
+    expect(mockStopTimer).toHaveBeenCalledTimes(1);
   });
 
   it("handles reset button click", async () => {
@@ -77,6 +77,6 @@ describe("PomodoroApp", () => {
     render(<PomodoroApp />);
 
     await user.click(screen.getByText("Reset"));
-    expect(mockReset).toHaveBeenCalledTimes(1);
+    expect(mockResetTimer).toHaveBeenCalledTimes(1);
   });
 });

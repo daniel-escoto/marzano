@@ -1,17 +1,16 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import DebugPanel from "../DebugPanel";
+import { isDevEnvironment } from "../../_util/isDevEnvironment";
 
-// Mock the isDevEnvironment utility
+// Mock isDevEnvironment
 jest.mock("../../_util/isDevEnvironment", () => ({
   isDevEnvironment: jest.fn(),
 }));
 
-// Import the mocked function for controlling its behavior
-import { isDevEnvironment } from "../../_util/isDevEnvironment";
-
 describe("DebugPanel", () => {
   const mockSetTime = jest.fn();
+  const mockSetCompletedPomodoros = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -20,7 +19,14 @@ describe("DebugPanel", () => {
   it("should not render in production mode", () => {
     (isDevEnvironment as jest.Mock).mockReturnValue(false);
 
-    render(<DebugPanel time={300} setTime={mockSetTime} />);
+    render(
+      <DebugPanel
+        time={300}
+        setTime={mockSetTime}
+        completedPomodoros={2}
+        setCompletedPomodoros={mockSetCompletedPomodoros}
+      />,
+    );
 
     expect(screen.queryByText("Debug Panel")).not.toBeInTheDocument();
   });
@@ -28,14 +34,18 @@ describe("DebugPanel", () => {
   it("should render in development mode", () => {
     (isDevEnvironment as jest.Mock).mockReturnValue(true);
 
-    render(<DebugPanel time={300} setTime={mockSetTime} />);
+    render(
+      <DebugPanel
+        time={300}
+        setTime={mockSetTime}
+        completedPomodoros={2}
+        setCompletedPomodoros={mockSetCompletedPomodoros}
+      />,
+    );
 
     expect(screen.getByText("Debug Panel")).toBeInTheDocument();
-    expect(screen.getByText("-1m")).toBeInTheDocument();
-    expect(screen.getByText("-30s")).toBeInTheDocument();
-    expect(screen.getByText("+30s")).toBeInTheDocument();
-    expect(screen.getByText("+1m")).toBeInTheDocument();
-    expect(screen.getByText("Set to 5s")).toBeInTheDocument();
+    expect(screen.getByText("Timer Controls")).toBeInTheDocument();
+    expect(screen.getByText("Tomato Controls")).toBeInTheDocument();
   });
 
   describe("time manipulation", () => {
@@ -45,7 +55,14 @@ describe("DebugPanel", () => {
 
     it("should add time correctly", async () => {
       const user = userEvent.setup();
-      render(<DebugPanel time={300} setTime={mockSetTime} />);
+      render(
+        <DebugPanel
+          time={300}
+          setTime={mockSetTime}
+          completedPomodoros={2}
+          setCompletedPomodoros={mockSetCompletedPomodoros}
+        />,
+      );
 
       await user.click(screen.getByText("+30s"));
       expect(mockSetTime).toHaveBeenCalledWith(330);
@@ -56,7 +73,14 @@ describe("DebugPanel", () => {
 
     it("should subtract time correctly", async () => {
       const user = userEvent.setup();
-      render(<DebugPanel time={300} setTime={mockSetTime} />);
+      render(
+        <DebugPanel
+          time={300}
+          setTime={mockSetTime}
+          completedPomodoros={2}
+          setCompletedPomodoros={mockSetCompletedPomodoros}
+        />,
+      );
 
       await user.click(screen.getByText("-30s"));
       expect(mockSetTime).toHaveBeenCalledWith(270);
@@ -67,7 +91,14 @@ describe("DebugPanel", () => {
 
     it("should not allow negative time when subtracting", async () => {
       const user = userEvent.setup();
-      render(<DebugPanel time={30} setTime={mockSetTime} />);
+      render(
+        <DebugPanel
+          time={30}
+          setTime={mockSetTime}
+          completedPomodoros={2}
+          setCompletedPomodoros={mockSetCompletedPomodoros}
+        />,
+      );
 
       await user.click(screen.getByText("-1m"));
       expect(mockSetTime).toHaveBeenCalledWith(0);
@@ -75,10 +106,83 @@ describe("DebugPanel", () => {
 
     it("should set time to 5 seconds", async () => {
       const user = userEvent.setup();
-      render(<DebugPanel time={300} setTime={mockSetTime} />);
+      render(
+        <DebugPanel
+          time={300}
+          setTime={mockSetTime}
+          completedPomodoros={2}
+          setCompletedPomodoros={mockSetCompletedPomodoros}
+        />,
+      );
 
       await user.click(screen.getByText("Set to 5s"));
       expect(mockSetTime).toHaveBeenCalledWith(5);
+    });
+  });
+
+  describe("tomato manipulation", () => {
+    beforeEach(() => {
+      (isDevEnvironment as jest.Mock).mockReturnValue(true);
+    });
+
+    it("should add tomatoes correctly", async () => {
+      const user = userEvent.setup();
+      render(
+        <DebugPanel
+          time={300}
+          setTime={mockSetTime}
+          completedPomodoros={2}
+          setCompletedPomodoros={mockSetCompletedPomodoros}
+        />,
+      );
+
+      await user.click(screen.getByText("+🍅"));
+      expect(mockSetCompletedPomodoros).toHaveBeenCalledWith(3);
+    });
+
+    it("should subtract tomatoes correctly", async () => {
+      const user = userEvent.setup();
+      render(
+        <DebugPanel
+          time={300}
+          setTime={mockSetTime}
+          completedPomodoros={2}
+          setCompletedPomodoros={mockSetCompletedPomodoros}
+        />,
+      );
+
+      await user.click(screen.getByText("-🍅"));
+      expect(mockSetCompletedPomodoros).toHaveBeenCalledWith(1);
+    });
+
+    it("should not allow negative tomato count", async () => {
+      const user = userEvent.setup();
+      render(
+        <DebugPanel
+          time={300}
+          setTime={mockSetTime}
+          completedPomodoros={0}
+          setCompletedPomodoros={mockSetCompletedPomodoros}
+        />,
+      );
+
+      await user.click(screen.getByText("-🍅"));
+      expect(mockSetCompletedPomodoros).toHaveBeenCalledWith(0);
+    });
+
+    it("should reset tomato count", async () => {
+      const user = userEvent.setup();
+      render(
+        <DebugPanel
+          time={300}
+          setTime={mockSetTime}
+          completedPomodoros={2}
+          setCompletedPomodoros={mockSetCompletedPomodoros}
+        />,
+      );
+
+      await user.click(screen.getByText("Reset 🍅"));
+      expect(mockSetCompletedPomodoros).toHaveBeenCalledWith(0);
     });
   });
 });

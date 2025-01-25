@@ -59,13 +59,47 @@ function ProgressBar({ progress }: { progress: number }) {
   );
 }
 
-function PomodoroTracker() {
-  return <div>🍅🍅🍅</div>;
+export function PomodoroTracker({ count }: { count: number }) {
+  const tomatoes = Array.from({ length: count }, (_, i) => (
+    <span key={i} role="img" aria-label="completed pomodoro">
+      🍅
+    </span>
+  ));
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="text-2xl">{tomatoes}</div>
+      <p className="text-sm text-gray-600">
+        {count} {count === 1 ? "pomodoro" : "pomodoros"} completed
+      </p>
+    </div>
+  );
+}
+
+export function ResetAllButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="text-sm text-gray-500 hover:text-gray-700"
+    >
+      Reset Progress
+    </button>
+  );
 }
 
 function PomodoroApp() {
-  const { time, progress, start, stop, reset, isRunning, setTime } =
-    usePomodoro();
+  const {
+    time,
+    progress,
+    startTimer,
+    stopTimer,
+    resetTimer,
+    resetAll,
+    isRunning,
+    setTime,
+    completedPomodoros,
+    setCompletedPomodoros,
+  } = usePomodoro();
   useUpdateMetadata(time);
 
   return (
@@ -76,15 +110,23 @@ function PomodoroApp() {
         <div className="flex gap-4">
           <StartStopToggle
             isRunning={isRunning}
-            onStart={start}
-            onStop={stop}
+            onStart={startTimer}
+            onStop={stopTimer}
           />
-          <ResetButton onClick={reset} />
+          <ResetButton onClick={resetTimer} />
         </div>
         <ProgressBar progress={progress} />
-        <PomodoroTracker />
+        <div className="flex flex-col items-center gap-4">
+          <PomodoroTracker count={completedPomodoros} />
+          {completedPomodoros > 0 && <ResetAllButton onClick={resetAll} />}
+        </div>
       </div>
-      <DebugPanel time={time} setTime={setTime} />
+      <DebugPanel
+        time={time}
+        setTime={setTime}
+        completedPomodoros={completedPomodoros}
+        setCompletedPomodoros={setCompletedPomodoros}
+      />
     </>
   );
 }

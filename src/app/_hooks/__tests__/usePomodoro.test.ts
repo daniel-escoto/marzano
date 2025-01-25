@@ -14,19 +14,23 @@ describe("usePomodoro", () => {
     const { result } = renderHook(() => usePomodoro());
 
     expect(result.current.time).toBe(25 * 60); // 25 minutes in seconds
-    expect(result.current).toHaveProperty("start");
-    expect(result.current).toHaveProperty("stop");
-    expect(result.current).toHaveProperty("reset");
+    expect(result.current.isRunning).toBe(false);
+    expect(result.current.completedPomodoros).toBe(0);
+    expect(result.current).toHaveProperty("startTimer");
+    expect(result.current).toHaveProperty("stopTimer");
+    expect(result.current).toHaveProperty("resetTimer");
+    expect(result.current).toHaveProperty("resetAll");
   });
 
   it("should start and stop the timer", () => {
     const { result } = renderHook(() => usePomodoro());
 
     act(() => {
-      result.current.start();
+      result.current.startTimer();
     });
 
     expect(result.current.time).toBe(25 * 60);
+    expect(result.current.isRunning).toBe(true);
 
     // Advance timer by 2 seconds
     act(() => {
@@ -36,8 +40,10 @@ describe("usePomodoro", () => {
     expect(result.current.time).toBe(25 * 60 - 2);
 
     act(() => {
-      result.current.stop();
+      result.current.stopTimer();
     });
+
+    expect(result.current.isRunning).toBe(false);
 
     // Advance timer by 1 more second
     act(() => {
@@ -53,7 +59,7 @@ describe("usePomodoro", () => {
 
     // Start and advance timer
     act(() => {
-      result.current.start();
+      result.current.startTimer();
     });
 
     act(() => {
@@ -64,10 +70,11 @@ describe("usePomodoro", () => {
 
     // Reset timer
     act(() => {
-      result.current.reset();
+      result.current.resetTimer();
     });
 
     expect(result.current.time).toBe(25 * 60);
+    expect(result.current.isRunning).toBe(false);
 
     // Advance timer after reset
     act(() => {
@@ -78,26 +85,144 @@ describe("usePomodoro", () => {
     expect(result.current.time).toBe(25 * 60);
   });
 
-  it("should stop at 0 and not go negative", () => {
+  it("should increment completed pomodoros when timer reaches zero", () => {
     const { result } = renderHook(() => usePomodoro());
 
     act(() => {
-      result.current.start();
+      result.current.startTimer();
     });
 
-    // Advance to just before 0
+    // Advance to just before completion
     act(() => {
-      jest.advanceTimersByTime(25 * 60 * 1000);
+      jest.advanceTimersByTime((25 * 60 - 1) * 1000);
     });
 
-    expect(result.current.time).toBe(0);
+    expect(result.current.time).toBe(1);
+    expect(result.current.completedPomodoros).toBe(0);
 
-    // Try to advance more
+    // Complete the pomodoro
     act(() => {
       jest.advanceTimersByTime(1000);
     });
 
-    // Should still be 0
     expect(result.current.time).toBe(0);
+    expect(result.current.completedPomodoros).toBe(1);
+    expect(result.current.isRunning).toBe(false);
+  });
+
+  it("should reset all progress", () => {
+    const { result } = renderHook(() => usePomodoro());
+
+    // Complete one pomodoro
+    act(() => {
+      result.current.startTimer();
+    });
+
+    // Advance to just before completion
+    act(() => {
+      jest.advanceTimersByTime((25 * 60 - 1) * 1000);
+    });
+
+    // Complete the pomodoro
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+
+    expect(result.current.time).toBe(0);
+    expect(result.current.completedPomodoros).toBe(1);
+
+    // Reset all progress
+    act(() => {
+      result.current.resetAll();
+    });
+
+    expect(result.current.completedPomodoros).toBe(0);
+    expect(result.current.time).toBe(25 * 60);
+    expect(result.current.isRunning).toBe(false);
+  });
+
+  it("should not double increment completedPomodoros on rapid updates", () => {
+    const { result } = renderHook(() => usePomodoro());
+
+    // Start the timer
+    act(() => {
+      result.current.startTimer();
+    });
+
+    // Set time to 1 second and let it complete
+    act(() => {
+      result.current.setTime(1);
+    });
+
+    // Advance time rapidly
+    act(() => {
+      jest.advanceTimersByTime(1100); // Advance slightly more than 1 second
+    });
+
+    // Should only increment once
+    expect(result.current.completedPomodoros).toBe(1);
+    expect(result.current.time).toBe(0);
+    expect(result.current.isRunning).toBe(false);
+
+    // Additional time advancement should not affect the count
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+
+    expect(result.current.completedPomodoros).toBe(1);
+  });
+
+  it("should handle multiple pomodoro completions correctly", () => {
+    const { result } = renderHook(() => usePomodoro());
+
+    // Complete first pomodoro
+    act(() => {
+      result.current.startTimer();
+    });
+
+    act(() => {
+      result.current.setTime(1);
+    });
+
+    // Verify initial state
+    expect(result.current.time).toBe(1);
+    expect(result.current.isRunning).toBe(true);
+    expect(result.current.completedPomodoros).toBe(0);
+
+    // Let it complete
+    act(() => {
+      jest.advanceTimersByTime(1100);
+    });
+
+    // Verify first completion
+    expect(result.current.time).toBe(0);
+    expect(result.current.isRunning).toBe(false);
+    expect(result.current.completedPomodoros).toBe(1);
+
+    // Start and complete second pomodoro
+    act(() => {
+      result.current.resetTimer();
+    });
+
+    expect(result.current.time).toBe(25 * 60);
+    expect(result.current.isRunning).toBe(false);
+    expect(result.current.completedPomodoros).toBe(1);
+
+    act(() => {
+      result.current.startTimer();
+    });
+
+    act(() => {
+      result.current.setTime(1);
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(1100);
+    });
+
+    // Verify second completion
+    expect(result.current.time).toBe(0);
+    expect(result.current.isRunning).toBe(false);
+    expect(result.current.completedPomodoros).toBe(2);
   });
 });
