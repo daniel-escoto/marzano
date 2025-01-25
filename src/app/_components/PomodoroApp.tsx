@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import usePomodoro from "../_hooks/usePomodoro";
 
 interface ButtonProps {
   title: string;
@@ -18,45 +19,31 @@ function Button({ title, onClick }: ButtonProps) {
   );
 }
 
-function Timer() {
-  return <p className="font-mono text-4xl">00:00:00</p>;
+function Timer({ time }: { time: number }) {
+  return <p className="font-mono text-4xl">{time}</p>;
 }
 
-function StartButton() {
+function StartButton({ onClick }: { onClick: () => void }) {
+  return <Button title="Start" onClick={onClick} />;
+}
+
+function StopButton({ onClick }: { onClick: () => void }) {
+  return <Button title="Stop" onClick={onClick} />;
+}
+
+function ResetButton({ onClick }: { onClick: () => void }) {
+  return <Button title="Reset" onClick={onClick} />;
+}
+
+function ProgressBar({ progress }: { progress: number }) {
   return (
-    <Button
-      title="Start"
-      onClick={() => {
-        console.log("start");
-      }}
-    />
+    <div className="h-2 w-full rounded-full bg-gray-200">
+      <div
+        className="h-full rounded-full bg-blue-500"
+        style={{ width: `${progress}%` }}
+      ></div>
+    </div>
   );
-}
-
-function StopButton() {
-  return (
-    <Button
-      title="Stop"
-      onClick={() => {
-        console.log("stop");
-      }}
-    />
-  );
-}
-
-function ResetButton() {
-  return (
-    <Button
-      title="Reset"
-      onClick={() => {
-        console.log("reset");
-      }}
-    />
-  );
-}
-
-function ProgressBar() {
-  return <div className="h-2 w-full rounded-full bg-gray-200"></div>;
 }
 
 function PomodoroTracker() {
@@ -64,18 +51,20 @@ function PomodoroTracker() {
 }
 
 function PomodoroApp() {
+  const { time, progress, start, stop, reset } = usePomodoro();
+
   return (
     <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
       <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
         Welcome to Marzano
       </h1>
-      <Timer />
+      <Timer time={time} />
       <div className="flex gap-4">
-        <StartButton />
-        <StopButton />
-        <ResetButton />
+        <StartButton onClick={start} />
+        <StopButton onClick={stop} />
+        <ResetButton onClick={reset} />
       </div>
-      <ProgressBar />
+      <ProgressBar progress={progress} />
       <PomodoroTracker />
     </div>
   );

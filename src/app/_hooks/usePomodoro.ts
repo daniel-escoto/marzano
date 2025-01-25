@@ -41,8 +41,11 @@ function usePomodoro() {
     };
   }, [isRunning, time]);
 
+  const progress = (time / DEFAULT_POMODORO_TIME) * 100;
+
   return {
     time,
+    progress,
     start,
     stop,
     reset,

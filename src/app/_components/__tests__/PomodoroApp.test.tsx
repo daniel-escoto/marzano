@@ -2,6 +2,18 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import PomodoroApp from "../PomodoroApp";
 
+// Mock the usePomodoro hook
+jest.mock("../../_hooks/usePomodoro", () => ({
+  __esModule: true,
+  default: () => ({
+    time: 1500,
+    progress: 100,
+    start: jest.fn(() => console.log("start")),
+    stop: jest.fn(() => console.log("stop")),
+    reset: jest.fn(() => console.log("reset")),
+  }),
+}));
+
 describe("PomodoroApp", () => {
   it("renders the main components", () => {
     render(<PomodoroApp />);
@@ -9,8 +21,8 @@ describe("PomodoroApp", () => {
     // Check for main title
     expect(screen.getByText("Welcome to Marzano")).toBeInTheDocument();
 
-    // Check for timer
-    expect(screen.getByText("00:00:00")).toBeInTheDocument();
+    // Check for timer with the mocked value (1500 seconds)
+    expect(screen.getByText("1500")).toBeInTheDocument();
 
     // Check for buttons
     expect(screen.getByText("Start")).toBeInTheDocument();
