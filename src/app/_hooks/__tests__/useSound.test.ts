@@ -24,12 +24,15 @@ const mockCreateGain = jest.fn(() => ({
 }));
 
 // Mock the AudioContext constructor
-(global as any).AudioContext = jest.fn(() => ({
+const mockAudioContext = jest.fn(() => ({
   createOscillator: mockCreateOscillator,
   createGain: mockCreateGain,
   currentTime: 0,
   destination: {},
 }));
+
+// @ts-expect-error -- AudioContext mock for testing
+window.AudioContext = mockAudioContext;
 
 describe("useSound", () => {
   beforeEach(() => {
