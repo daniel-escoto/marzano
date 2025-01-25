@@ -3,6 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "lint-staged": {
+    "**/*.{ts,tsx}": [
+      "npm run type-check",
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "**/*.{js,jsx,json,md}": [
+      "prettier --write"
+    ]
+  },
   "scripts": {
     "build": "next build",
     "check": "next lint && tsc --noEmit",
@@ -17,7 +27,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "prepare": "husky"
+    "prepare": "husky",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@t3-oss/env-nextjs": "^0.10.1",
