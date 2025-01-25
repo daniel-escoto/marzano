@@ -14,6 +14,10 @@ jest.mock("../../_hooks/usePomodoro", () => ({
   }),
 }));
 
+jest.mock("../../_util/formatTime", () => ({
+  formatTime: jest.fn(() => "1500"),
+}));
+
 describe("PomodoroApp", () => {
   it("renders the main components", () => {
     render(<PomodoroApp />);

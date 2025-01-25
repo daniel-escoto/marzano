@@ -2,6 +2,7 @@
 
 import React from "react";
 import usePomodoro from "../_hooks/usePomodoro";
+import { formatTime } from "../_util/formatTime";
 
 interface ButtonProps {
   title: string;
@@ -20,7 +21,7 @@ function Button({ title, onClick }: ButtonProps) {
 }
 
 function Timer({ time }: { time: number }) {
-  return <p className="font-mono text-4xl">{time}</p>;
+  return <p className="font-mono text-4xl">{formatTime(time)}</p>;
 }
 
 function StartButton({ onClick }: { onClick: () => void }) {
