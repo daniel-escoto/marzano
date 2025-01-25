@@ -3,6 +3,7 @@
 import React from "react";
 import usePomodoro from "../_hooks/usePomodoro";
 import { formatTime } from "../_util/formatTime";
+import Header from "./Header";
 
 interface ButtonProps {
   title: string;
@@ -64,18 +65,22 @@ function PomodoroApp() {
   const { time, progress, start, stop, reset, isRunning } = usePomodoro();
 
   return (
-    <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-      <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-        Welcome to Marzano
-      </h1>
-      <Timer time={time} />
-      <div className="flex gap-4">
-        <StartStopToggle isRunning={isRunning} onStart={start} onStop={stop} />
-        <ResetButton onClick={reset} />
+    <>
+      <Header />
+      <div className="container flex min-h-screen flex-col items-center justify-center gap-12 px-4">
+        <Timer time={time} />
+        <div className="flex gap-4">
+          <StartStopToggle
+            isRunning={isRunning}
+            onStart={start}
+            onStop={stop}
+          />
+          <ResetButton onClick={reset} />
+        </div>
+        <ProgressBar progress={progress} />
+        <PomodoroTracker />
       </div>
-      <ProgressBar progress={progress} />
-      <PomodoroTracker />
-    </div>
+    </>
   );
 }
 

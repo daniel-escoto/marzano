@@ -35,8 +35,8 @@ describe("PomodoroApp", () => {
   it("renders the main components", () => {
     render(<PomodoroApp />);
 
-    // Check for main title
-    expect(screen.getByText("Welcome to Marzano")).toBeInTheDocument();
+    // Check for header title
+    expect(screen.getByText("Marzano")).toBeInTheDocument();
 
     // Check for timer with the mocked value (1500 seconds)
     expect(screen.getByText("1500")).toBeInTheDocument();
