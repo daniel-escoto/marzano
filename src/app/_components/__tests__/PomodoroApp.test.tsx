@@ -6,6 +6,7 @@ import PomodoroApp from "../PomodoroApp";
 const mockStartTimer = jest.fn();
 const mockStopTimer = jest.fn();
 const mockResetTimer = jest.fn();
+const mockOnComplete = jest.fn();
 let mockIsRunning = false;
 
 jest.mock("../../_hooks/usePomodoro", () => ({
@@ -17,6 +18,19 @@ jest.mock("../../_hooks/usePomodoro", () => ({
     startTimer: mockStartTimer,
     stopTimer: mockStopTimer,
     resetTimer: mockResetTimer,
+    onComplete: mockOnComplete,
+    completedPomodoros: 0,
+    setCompletedPomodoros: jest.fn(),
+    setTime: jest.fn(),
+    resetAll: jest.fn(),
+  }),
+}));
+
+// Mock the useSound hook
+const mockPlaySound = jest.fn();
+jest.mock("../../_hooks/useSound", () => ({
+  useSound: () => ({
+    playSound: mockPlaySound,
   }),
 }));
 
@@ -29,6 +43,8 @@ describe("PomodoroApp", () => {
     mockStartTimer.mockClear();
     mockStopTimer.mockClear();
     mockResetTimer.mockClear();
+    mockPlaySound.mockClear();
+    mockOnComplete.mockClear();
     mockIsRunning = false;
   });
 
@@ -78,5 +94,12 @@ describe("PomodoroApp", () => {
 
     await user.click(screen.getByText("Reset"));
     expect(mockResetTimer).toHaveBeenCalledTimes(1);
+  });
+
+  it("registers sound callback on mount", () => {
+    render(<PomodoroApp />);
+
+    // The onComplete callback should be registered with the playSound function
+    expect(mockOnComplete).toHaveBeenCalledWith(mockPlaySound);
   });
 });

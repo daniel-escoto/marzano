@@ -20,6 +20,7 @@ describe("usePomodoro", () => {
     expect(result.current).toHaveProperty("stopTimer");
     expect(result.current).toHaveProperty("resetTimer");
     expect(result.current).toHaveProperty("resetAll");
+    expect(result.current).toHaveProperty("onComplete");
   });
 
   it("should start and stop the timer", () => {
@@ -85,8 +86,14 @@ describe("usePomodoro", () => {
     expect(result.current.time).toBe(25 * 60);
   });
 
-  it("should increment completed pomodoros when timer reaches zero", () => {
+  it("should increment completed pomodoros and call onComplete when timer reaches zero", () => {
+    const mockCallback = jest.fn();
     const { result } = renderHook(() => usePomodoro());
+
+    // Register completion callback
+    act(() => {
+      result.current.onComplete(mockCallback);
+    });
 
     act(() => {
       result.current.startTimer();
@@ -99,6 +106,7 @@ describe("usePomodoro", () => {
 
     expect(result.current.time).toBe(1);
     expect(result.current.completedPomodoros).toBe(0);
+    expect(mockCallback).not.toHaveBeenCalled();
 
     // Complete the pomodoro
     act(() => {
@@ -108,6 +116,7 @@ describe("usePomodoro", () => {
     expect(result.current.time).toBe(0);
     expect(result.current.completedPomodoros).toBe(1);
     expect(result.current.isRunning).toBe(false);
+    expect(mockCallback).toHaveBeenCalledTimes(1);
   });
 
   it("should reset all progress", () => {
@@ -142,7 +151,13 @@ describe("usePomodoro", () => {
   });
 
   it("should not double increment completedPomodoros on rapid updates", () => {
+    const mockCallback = jest.fn();
     const { result } = renderHook(() => usePomodoro());
+
+    // Register completion callback
+    act(() => {
+      result.current.onComplete(mockCallback);
+    });
 
     // Start the timer
     act(() => {
@@ -159,21 +174,29 @@ describe("usePomodoro", () => {
       jest.advanceTimersByTime(1100); // Advance slightly more than 1 second
     });
 
-    // Should only increment once
+    // Should only increment once and call callback once
     expect(result.current.completedPomodoros).toBe(1);
     expect(result.current.time).toBe(0);
     expect(result.current.isRunning).toBe(false);
+    expect(mockCallback).toHaveBeenCalledTimes(1);
 
-    // Additional time advancement should not affect the count
+    // Additional time advancement should not affect the count or trigger callback
     act(() => {
       jest.advanceTimersByTime(1000);
     });
 
     expect(result.current.completedPomodoros).toBe(1);
+    expect(mockCallback).toHaveBeenCalledTimes(1);
   });
 
   it("should handle multiple pomodoro completions correctly", () => {
+    const mockCallback = jest.fn();
     const { result } = renderHook(() => usePomodoro());
+
+    // Register completion callback
+    act(() => {
+      result.current.onComplete(mockCallback);
+    });
 
     // Complete first pomodoro
     act(() => {
@@ -198,6 +221,7 @@ describe("usePomodoro", () => {
     expect(result.current.time).toBe(0);
     expect(result.current.isRunning).toBe(false);
     expect(result.current.completedPomodoros).toBe(1);
+    expect(mockCallback).toHaveBeenCalledTimes(1);
 
     // Start and complete second pomodoro
     act(() => {
@@ -224,5 +248,6 @@ describe("usePomodoro", () => {
     expect(result.current.time).toBe(0);
     expect(result.current.isRunning).toBe(false);
     expect(result.current.completedPomodoros).toBe(2);
+    expect(mockCallback).toHaveBeenCalledTimes(2);
   });
 });

@@ -4,6 +4,7 @@ import React from "react";
 import usePomodoro from "../_hooks/usePomodoro";
 import { formatTime } from "../_util/formatTime";
 import { useUpdateMetadata } from "../_hooks/useUpdateMetadata";
+import { useSound } from "../_hooks/useSound";
 import Header from "./Header";
 import DebugPanel from "./DebugPanel";
 
@@ -99,8 +100,15 @@ function PomodoroApp() {
     setTime,
     completedPomodoros,
     setCompletedPomodoros,
+    onComplete,
   } = usePomodoro();
+  const { playSound } = useSound();
   useUpdateMetadata(time);
+
+  // Register sound callback
+  React.useEffect(() => {
+    onComplete(playSound);
+  }, [onComplete, playSound]);
 
   return (
     <>

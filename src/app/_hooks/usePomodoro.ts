@@ -2,17 +2,38 @@ import { useEffect, useState, useCallback, useRef } from "react";
 
 const DEFAULT_POMODORO_TIME = 25 * 60;
 
-function usePomodoro() {
+type CompletionCallback = () => void;
+
+interface PomodoroHook {
+  time: number;
+  progress: number;
+  isRunning: boolean;
+  completedPomodoros: number;
+  startTimer: () => void;
+  stopTimer: () => void;
+  resetTimer: () => void;
+  resetAll: () => void;
+  setTime: (time: number) => void;
+  setCompletedPomodoros: (count: number) => void;
+  onComplete: (callback: CompletionCallback) => void;
+}
+
+function usePomodoro(): PomodoroHook {
   const [time, setTime] = useState(DEFAULT_POMODORO_TIME);
   const [isRunning, setIsRunning] = useState(false);
   const [completedPomodoros, setCompletedPomodoros] = useState(0);
   const isCompletingRef = useRef(false);
+  const onCompleteCallbackRef = useRef<CompletionCallback | null>(null);
 
   const handleCompletion = useCallback(() => {
     if (isCompletingRef.current) return;
     isCompletingRef.current = true;
     setIsRunning(false);
     setCompletedPomodoros((prev) => prev + 1);
+    // Call completion callback if set
+    if (onCompleteCallbackRef.current) {
+      onCompleteCallbackRef.current();
+    }
     // Reset the flag after all state updates are processed
     setTimeout(() => {
       isCompletingRef.current = false;
@@ -36,6 +57,10 @@ function usePomodoro() {
   const stopTimer = () => {
     setIsRunning(false);
   };
+
+  const onComplete = useCallback((callback: CompletionCallback) => {
+    onCompleteCallbackRef.current = callback;
+  }, []);
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -72,6 +97,7 @@ function usePomodoro() {
     resetAll,
     setTime,
     setCompletedPomodoros,
+    onComplete,
   };
 }
 
