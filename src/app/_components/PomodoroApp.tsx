@@ -3,6 +3,7 @@
 import React from "react";
 import usePomodoro from "../_hooks/usePomodoro";
 import { formatTime } from "../_util/formatTime";
+import { useUpdateMetadata } from "../_hooks/useUpdateMetadata";
 import Header from "./Header";
 
 interface ButtonProps {
@@ -63,6 +64,7 @@ function PomodoroTracker() {
 
 function PomodoroApp() {
   const { time, progress, start, stop, reset, isRunning } = usePomodoro();
+  useUpdateMetadata(time);
 
   return (
     <>
