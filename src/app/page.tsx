@@ -1,17 +1,13 @@
-import { HydrateClient } from "~/trpc/server";
+import { TRPCReactProvider } from "~/trpc/react";
+import { PomodoroApp } from "./_components/pomodoro";
 
-export default async function Home() {
-  // void api.post.getLatest.prefetch();
-
+// Server Component (default export)
+export default function Home() {
   return (
-    <HydrateClient>
+    <TRPCReactProvider>
       <main className="flex min-h-screen flex-col items-center justify-center dark:bg-gray-900 dark:text-white">
-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-          <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-            Welcome to Marzano
-          </h1>
-        </div>
+        <PomodoroApp />
       </main>
-    </HydrateClient>
+    </TRPCReactProvider>
   );
 }
