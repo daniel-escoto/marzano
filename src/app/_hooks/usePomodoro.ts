@@ -50,6 +50,7 @@ function usePomodoro() {
     start,
     stop,
     reset,
+    setTime,
   };
 }
 

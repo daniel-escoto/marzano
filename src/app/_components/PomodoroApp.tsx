@@ -5,6 +5,7 @@ import usePomodoro from "../_hooks/usePomodoro";
 import { formatTime } from "../_util/formatTime";
 import { useUpdateMetadata } from "../_hooks/useUpdateMetadata";
 import Header from "./Header";
+import DebugPanel from "./DebugPanel";
 
 interface ButtonProps {
   title: string;
@@ -63,7 +64,8 @@ function PomodoroTracker() {
 }
 
 function PomodoroApp() {
-  const { time, progress, start, stop, reset, isRunning } = usePomodoro();
+  const { time, progress, start, stop, reset, isRunning, setTime } =
+    usePomodoro();
   useUpdateMetadata(time);
 
   return (
@@ -82,6 +84,7 @@ function PomodoroApp() {
         <ProgressBar progress={progress} />
         <PomodoroTracker />
       </div>
+      <DebugPanel time={time} setTime={setTime} />
     </>
   );
 }
