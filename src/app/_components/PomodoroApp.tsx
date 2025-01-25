@@ -24,12 +24,21 @@ function Timer({ time }: { time: number }) {
   return <p className="font-mono text-4xl">{formatTime(time)}</p>;
 }
 
-function StartButton({ onClick }: { onClick: () => void }) {
-  return <Button title="Start" onClick={onClick} />;
-}
-
-function StopButton({ onClick }: { onClick: () => void }) {
-  return <Button title="Stop" onClick={onClick} />;
+function StartStopToggle({
+  isRunning,
+  onStart,
+  onStop,
+}: {
+  isRunning: boolean;
+  onStart: () => void;
+  onStop: () => void;
+}) {
+  return (
+    <Button
+      title={isRunning ? "Stop" : "Start"}
+      onClick={isRunning ? onStop : onStart}
+    />
+  );
 }
 
 function ResetButton({ onClick }: { onClick: () => void }) {
@@ -52,7 +61,7 @@ function PomodoroTracker() {
 }
 
 function PomodoroApp() {
-  const { time, progress, start, stop, reset } = usePomodoro();
+  const { time, progress, start, stop, reset, isRunning } = usePomodoro();
 
   return (
     <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
@@ -61,8 +70,7 @@ function PomodoroApp() {
       </h1>
       <Timer time={time} />
       <div className="flex gap-4">
-        <StartButton onClick={start} />
-        <StopButton onClick={stop} />
+        <StartStopToggle isRunning={isRunning} onStart={start} onStop={stop} />
         <ResetButton onClick={reset} />
       </div>
       <ProgressBar progress={progress} />

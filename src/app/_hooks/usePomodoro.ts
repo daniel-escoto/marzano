@@ -46,6 +46,7 @@ function usePomodoro() {
   return {
     time,
     progress,
+    isRunning,
     start,
     stop,
     reset,

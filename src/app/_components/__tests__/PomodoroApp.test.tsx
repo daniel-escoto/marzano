@@ -3,14 +3,20 @@ import userEvent from "@testing-library/user-event";
 import PomodoroApp from "../PomodoroApp";
 
 // Mock the usePomodoro hook
+const mockStart = jest.fn();
+const mockStop = jest.fn();
+const mockReset = jest.fn();
+let mockIsRunning = false;
+
 jest.mock("../../_hooks/usePomodoro", () => ({
   __esModule: true,
   default: () => ({
     time: 1500,
     progress: 100,
-    start: jest.fn(() => console.log("start")),
-    stop: jest.fn(() => console.log("stop")),
-    reset: jest.fn(() => console.log("reset")),
+    isRunning: mockIsRunning,
+    start: mockStart,
+    stop: mockStop,
+    reset: mockReset,
   }),
 }));
 
@@ -19,6 +25,13 @@ jest.mock("../../_util/formatTime", () => ({
 }));
 
 describe("PomodoroApp", () => {
+  beforeEach(() => {
+    mockStart.mockClear();
+    mockStop.mockClear();
+    mockReset.mockClear();
+    mockIsRunning = false;
+  });
+
   it("renders the main components", () => {
     render(<PomodoroApp />);
 
@@ -30,28 +43,40 @@ describe("PomodoroApp", () => {
 
     // Check for buttons
     expect(screen.getByText("Start")).toBeInTheDocument();
-    expect(screen.getByText("Stop")).toBeInTheDocument();
     expect(screen.getByText("Reset")).toBeInTheDocument();
   });
 
-  it("buttons are clickable", async () => {
+  it("handles start/stop toggle correctly", async () => {
     const user = userEvent.setup();
-    const consoleSpy = jest.spyOn(console, "log");
 
+    // Initial render with isRunning = false
+    const { rerender } = render(<PomodoroApp />);
+
+    // Should show "Start" initially
+    const toggleButton = screen.getByText("Start");
+    expect(toggleButton).toBeInTheDocument();
+
+    // Click Start
+    await user.click(toggleButton);
+    expect(mockStart).toHaveBeenCalledTimes(1);
+
+    // Update mock to simulate running state
+    mockIsRunning = true;
+    rerender(<PomodoroApp />);
+
+    // Should now show "Stop"
+    expect(screen.getByText("Stop")).toBeInTheDocument();
+
+    // Click Stop
+    await user.click(screen.getByText("Stop"));
+    expect(mockStop).toHaveBeenCalledTimes(1);
+  });
+
+  it("handles reset button click", async () => {
+    const user = userEvent.setup();
     render(<PomodoroApp />);
 
-    // Test Start button
-    await user.click(screen.getByText("Start"));
-    expect(consoleSpy).toHaveBeenCalledWith("start");
-
-    // Test Stop button
-    await user.click(screen.getByText("Stop"));
-    expect(consoleSpy).toHaveBeenCalledWith("stop");
-
-    // Test Reset button
     await user.click(screen.getByText("Reset"));
-    expect(consoleSpy).toHaveBeenCalledWith("reset");
-
-    consoleSpy.mockRestore();
+    expect(mockReset).toHaveBeenCalledTimes(1);
   });
 });
