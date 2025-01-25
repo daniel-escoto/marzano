@@ -48,6 +48,86 @@ describe("DebugPanel", () => {
     expect(screen.getByText("Tomato Controls")).toBeInTheDocument();
   });
 
+  describe("panel minimization", () => {
+    beforeEach(() => {
+      (isDevEnvironment as jest.Mock).mockReturnValue(true);
+    });
+
+    it("should start expanded", () => {
+      render(
+        <DebugPanel
+          time={300}
+          setTime={mockSetTime}
+          completedPomodoros={2}
+          setCompletedPomodoros={mockSetCompletedPomodoros}
+        />,
+      );
+
+      expect(screen.getByText("Timer Controls")).toBeInTheDocument();
+      expect(screen.getByText("Tomato Controls")).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Minimize debug panel" }),
+      ).toBeInTheDocument();
+    });
+
+    it("should minimize and expand when clicking the button", async () => {
+      const user = userEvent.setup();
+      render(
+        <DebugPanel
+          time={300}
+          setTime={mockSetTime}
+          completedPomodoros={2}
+          setCompletedPomodoros={mockSetCompletedPomodoros}
+        />,
+      );
+
+      // Initially expanded
+      expect(screen.getByText("Timer Controls")).toBeInTheDocument();
+
+      // Minimize
+      await user.click(
+        screen.getByRole("button", { name: "Minimize debug panel" }),
+      );
+      expect(screen.queryByText("Timer Controls")).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Expand debug panel" }),
+      ).toBeInTheDocument();
+
+      // Expand
+      await user.click(
+        screen.getByRole("button", { name: "Expand debug panel" }),
+      );
+      expect(screen.getByText("Timer Controls")).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Minimize debug panel" }),
+      ).toBeInTheDocument();
+    });
+
+    it("should keep controls functional after minimize/expand", async () => {
+      const user = userEvent.setup();
+      render(
+        <DebugPanel
+          time={300}
+          setTime={mockSetTime}
+          completedPomodoros={2}
+          setCompletedPomodoros={mockSetCompletedPomodoros}
+        />,
+      );
+
+      // Minimize and expand
+      await user.click(
+        screen.getByRole("button", { name: "Minimize debug panel" }),
+      );
+      await user.click(
+        screen.getByRole("button", { name: "Expand debug panel" }),
+      );
+
+      // Controls should still work
+      await user.click(screen.getByText("+30s"));
+      expect(mockSetTime).toHaveBeenCalledWith(330);
+    });
+  });
+
   describe("time manipulation", () => {
     beforeEach(() => {
       (isDevEnvironment as jest.Mock).mockReturnValue(true);
