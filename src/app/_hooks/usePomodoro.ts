@@ -24,7 +24,13 @@ function usePomodoro() {
 
     if (isRunning && time > 0) {
       intervalId = setInterval(() => {
-        setTime((prevTime) => prevTime - 1);
+        setTime((prevTime) => {
+          if (prevTime <= 1) {
+            setIsRunning(false);
+            return 0;
+          }
+          return prevTime - 1;
+        });
       }, 1000);
     }
 
