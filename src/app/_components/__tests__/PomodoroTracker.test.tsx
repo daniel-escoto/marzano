@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { PomodoroTracker, ResetAllButton } from "../PomodoroApp";
+import { ResetAllButton } from "../PomodoroApp";
+import PomodoroTracker from "../PomodoroTracker";
 
 describe("PomodoroTracker", () => {
   it("should display the correct number of tomatoes", () => {
@@ -10,7 +11,7 @@ describe("PomodoroTracker", () => {
     expect(tomatoes).toHaveLength(3);
   });
 
-  it("should group tomatoes in boxes of 4", () => {
+  it("should group tomatoes in boxes of 4 and show pack count", () => {
     const { container } = render(<PomodoroTracker count={7} />);
 
     // Find all boxed groups (should be 1 for first 4 tomatoes)
@@ -20,6 +21,16 @@ describe("PomodoroTracker", () => {
     // Find all tomatoes (should be 7 total)
     const tomatoes = screen.getAllByRole("img", { name: "completed pomodoro" });
     expect(tomatoes).toHaveLength(7);
+
+    // Verify pack count text
+    expect(
+      screen.getByText((content, element) => {
+        return (
+          element?.tagName.toLowerCase() === "p" &&
+          content.includes("1 pack + 3")
+        );
+      }),
+    ).toBeInTheDocument();
   });
 
   it("should handle multiple complete groups", () => {
@@ -32,16 +43,66 @@ describe("PomodoroTracker", () => {
     // Should have 8 tomatoes total
     const tomatoes = screen.getAllByRole("img", { name: "completed pomodoro" });
     expect(tomatoes).toHaveLength(8);
+
+    // Verify pack count text
+    expect(
+      screen.getByText((content, element) => {
+        return (
+          element?.tagName.toLowerCase() === "p" && content.includes("2 packs")
+        );
+      }),
+    ).toBeInTheDocument();
   });
 
-  it("should display singular form when count is 1", () => {
+  it("should handle single pack with no remainder", () => {
+    render(<PomodoroTracker count={4} />);
+    expect(
+      screen.getByText((content, element) => {
+        return (
+          element?.tagName.toLowerCase() === "p" && content.includes("1 pack")
+        );
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("should show only tomato count when less than a pack", () => {
+    render(<PomodoroTracker count={3} />);
+    expect(
+      screen.getByText((content, element) => {
+        return (
+          element?.tagName.toLowerCase() === "p" &&
+          content.includes("0 packs + 3")
+        );
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("should handle negative count gracefully", () => {
+    render(<PomodoroTracker count={-1} />);
+
+    const tomatoes = screen.queryAllByRole("img", {
+      name: "completed pomodoro",
+    });
+    expect(tomatoes).toHaveLength(0);
+    expect(
+      screen.getByText((content, element) => {
+        return (
+          element?.tagName.toLowerCase() === "p" && content.includes("0 packs")
+        );
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("should handle singular tomato text", () => {
     render(<PomodoroTracker count={1} />);
-    expect(screen.getByText("1 pomodoro completed")).toBeInTheDocument();
-  });
-
-  it("should display plural form when count is not 1", () => {
-    render(<PomodoroTracker count={2} />);
-    expect(screen.getByText("2 pomodoros completed")).toBeInTheDocument();
+    expect(
+      screen.getByText((content, element) => {
+        return (
+          element?.tagName.toLowerCase() === "p" &&
+          content.includes("0 packs + 1")
+        );
+      }),
+    ).toBeInTheDocument();
   });
 
   it("should display no tomatoes when count is 0", () => {
@@ -51,7 +112,13 @@ describe("PomodoroTracker", () => {
       name: "completed pomodoro",
     });
     expect(tomatoes).toHaveLength(0);
-    expect(screen.getByText("0 pomodoros completed")).toBeInTheDocument();
+    expect(
+      screen.getByText((content, element) => {
+        return (
+          element?.tagName.toLowerCase() === "p" && content.includes("0 packs")
+        );
+      }),
+    ).toBeInTheDocument();
   });
 });
 
