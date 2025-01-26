@@ -70,7 +70,7 @@ export function PomodoroTracker({ count }: { count: number }) {
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="text-2xl">{tomatoes}</div>
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-gray-600 dark:text-gray-400">
         {count} {count === 1 ? "pomodoro" : "pomodoros"} completed
       </p>
     </div>
