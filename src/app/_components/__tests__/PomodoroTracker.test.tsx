@@ -10,6 +10,30 @@ describe("PomodoroTracker", () => {
     expect(tomatoes).toHaveLength(3);
   });
 
+  it("should group tomatoes in boxes of 4", () => {
+    const { container } = render(<PomodoroTracker count={7} />);
+
+    // Find all boxed groups (should be 1 for first 4 tomatoes)
+    const boxedGroups = container.getElementsByClassName("border");
+    expect(boxedGroups).toHaveLength(1);
+
+    // Find all tomatoes (should be 7 total)
+    const tomatoes = screen.getAllByRole("img", { name: "completed pomodoro" });
+    expect(tomatoes).toHaveLength(7);
+  });
+
+  it("should handle multiple complete groups", () => {
+    const { container } = render(<PomodoroTracker count={8} />);
+
+    // Should have 2 boxed groups of 4
+    const boxedGroups = container.getElementsByClassName("border");
+    expect(boxedGroups).toHaveLength(2);
+
+    // Should have 8 tomatoes total
+    const tomatoes = screen.getAllByRole("img", { name: "completed pomodoro" });
+    expect(tomatoes).toHaveLength(8);
+  });
+
   it("should display singular form when count is 1", () => {
     render(<PomodoroTracker count={1} />);
     expect(screen.getByText("1 pomodoro completed")).toBeInTheDocument();

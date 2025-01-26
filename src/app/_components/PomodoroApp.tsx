@@ -61,15 +61,37 @@ function ProgressBar({ progress }: { progress: number }) {
 }
 
 export function PomodoroTracker({ count }: { count: number }) {
-  const tomatoes = Array.from({ length: count }, (_, i) => (
-    <span key={i} role="img" aria-label="completed pomodoro">
-      🍅
-    </span>
-  ));
+  const tomatoGroups = [];
+  for (let i = 0; i < count; i += 4) {
+    const groupTomatoes = Array.from(
+      { length: Math.min(4, count - i) },
+      (_, j) => (
+        <span key={i + j} role="img" aria-label="completed pomodoro">
+          🍅
+        </span>
+      ),
+    );
+    if (groupTomatoes.length === 4) {
+      tomatoGroups.push(
+        <span
+          key={`group-${i}`}
+          className="inline-flex rounded border border-gray-300 bg-gray-50 p-1 dark:border-gray-700 dark:bg-gray-800"
+        >
+          {groupTomatoes}
+        </span>,
+      );
+    } else {
+      tomatoGroups.push(
+        <span key={`group-${i}`} className="inline-flex">
+          {groupTomatoes}
+        </span>,
+      );
+    }
+  }
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="text-2xl">{tomatoes}</div>
+      <div className="flex flex-wrap gap-3 text-2xl">{tomatoGroups}</div>
       <p className="text-sm text-gray-600 dark:text-gray-400">
         {count} {count === 1 ? "pomodoro" : "pomodoros"} completed
       </p>
