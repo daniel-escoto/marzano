@@ -5,6 +5,7 @@
   "type": "module",
   "lint-staged": {
     "**/*.{ts,tsx}": [
+      "npm test",
       "eslint --fix",
       "prettier --write"
     ],
