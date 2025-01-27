@@ -4,5 +4,8 @@
 # Run TypeScript type checking first
 tsc --noEmit
 
+# Run tests
+npm test -- --passWithNoTests
+
 # Run lint-staged for other checks
 npx lint-staged

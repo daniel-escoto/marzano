@@ -16,10 +16,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
-      <body>
+      <body className="bg-gray-100 dark:bg-gray-900 dark:text-white">
         <TRPCReactProvider>
           <Header />
-          <main className="flex min-h-screen flex-col items-center justify-center pt-16 dark:bg-gray-900 dark:text-white">
+          <main className="container mx-auto min-h-screen max-w-lg p-4 pt-32 dark:bg-gray-900 dark:text-white">
             {children}
           </main>
         </TRPCReactProvider>

@@ -144,7 +144,7 @@ function PomodoroApp() {
 
   return (
     <>
-      <div className="container flex flex-col items-center justify-center gap-12 px-4">
+      <div className="flex flex-col items-center justify-center gap-12">
         <Timer time={time} mode={mode} />
         <div className="flex gap-4">
           <StartStopToggle
