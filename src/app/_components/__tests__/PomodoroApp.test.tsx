@@ -8,6 +8,7 @@ const mockStopTimer = jest.fn();
 const mockResetTimer = jest.fn();
 const mockOnComplete = jest.fn();
 let mockIsRunning = false;
+let mockMode = "work";
 
 jest.mock("../../_hooks/usePomodoro", () => ({
   __esModule: true,
@@ -15,6 +16,7 @@ jest.mock("../../_hooks/usePomodoro", () => ({
     time: 1500,
     progress: 100,
     isRunning: mockIsRunning,
+    mode: mockMode,
     startTimer: mockStartTimer,
     stopTimer: mockStopTimer,
     resetTimer: mockResetTimer,
@@ -46,6 +48,7 @@ describe("PomodoroApp", () => {
     mockPlaySound.mockClear();
     mockOnComplete.mockClear();
     mockIsRunning = false;
+    mockMode = "work";
   });
 
   it("renders the main components", () => {
@@ -53,6 +56,7 @@ describe("PomodoroApp", () => {
 
     // Check for timer with the mocked value (1500 seconds)
     expect(screen.getByText("1500")).toBeInTheDocument();
+    expect(screen.getByText("Work Time")).toBeInTheDocument();
 
     // Check for buttons
     expect(screen.getByText("Start")).toBeInTheDocument();
@@ -98,5 +102,22 @@ describe("PomodoroApp", () => {
 
     // The onComplete callback should be registered with the playSound function
     expect(mockOnComplete).toHaveBeenCalledWith(mockPlaySound);
+  });
+
+  it("displays correct mode text and styling", () => {
+    const { rerender } = render(<PomodoroApp />);
+
+    // Work mode
+    expect(screen.getByText("Work Time")).toHaveClass("text-blue-600");
+
+    // Short break mode
+    mockMode = "short-break";
+    rerender(<PomodoroApp />);
+    expect(screen.getByText("Short Break")).toHaveClass("text-green-600");
+
+    // Long break mode
+    mockMode = "long-break";
+    rerender(<PomodoroApp />);
+    expect(screen.getByText("Long Break")).toHaveClass("text-purple-600");
   });
 });
