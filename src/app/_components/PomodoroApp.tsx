@@ -5,7 +5,6 @@ import usePomodoro from "../_hooks/usePomodoro";
 import { formatTime } from "../_util/formatTime";
 import { useUpdateMetadata } from "../_hooks/useUpdateMetadata";
 import { useSound } from "../_hooks/useSound";
-import Header from "./Header";
 import DebugPanel from "./DebugPanel";
 import PomodoroTracker from "./PomodoroTracker";
 
@@ -96,8 +95,7 @@ function PomodoroApp() {
 
   return (
     <>
-      <Header />
-      <div className="container flex min-h-screen flex-col items-center justify-center gap-12 px-4">
+      <div className="container flex flex-col items-center justify-center gap-12 px-4">
         <Timer time={time} />
         <div className="flex gap-4">
           <StartStopToggle
