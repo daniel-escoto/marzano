@@ -6,6 +6,13 @@ const DURATIONS = {
   LONG_BREAK: 15 * 60,
 } as const;
 
+const STORAGE_KEYS = {
+  TIME: "marzano-time",
+  MODE: "marzano-mode",
+  IS_RUNNING: "marzano-is-running",
+  COMPLETED_POMODOROS: "marzano-completed-pomodoros",
+} as const;
+
 export type TimerMode = "work" | "short-break" | "long-break";
 
 type CompletionCallback = () => void;
@@ -26,12 +33,37 @@ interface PomodoroHook {
 }
 
 function usePomodoro(): PomodoroHook {
+  // Initialize with default values
   const [time, setTime] = useState(DURATIONS.WORK);
   const [mode, setMode] = useState<TimerMode>("work");
   const [isRunning, setIsRunning] = useState(false);
   const [completedPomodoros, setCompletedPomodoros] = useState(0);
   const isCompletingRef = useRef(false);
   const onCompleteCallbackRef = useRef<CompletionCallback | null>(null);
+  const hasInitializedRef = useRef(false);
+
+  // Load persisted data on mount only
+  useEffect(() => {
+    if (hasInitializedRef.current) return;
+    hasInitializedRef.current = true;
+
+    try {
+      const storedTime = localStorage.getItem(STORAGE_KEYS.TIME);
+      const storedMode = localStorage.getItem(STORAGE_KEYS.MODE);
+      const storedIsRunning = localStorage.getItem(STORAGE_KEYS.IS_RUNNING);
+      const storedCompletedPomodoros = localStorage.getItem(
+        STORAGE_KEYS.COMPLETED_POMODOROS,
+      );
+
+      if (storedTime) setTime(JSON.parse(storedTime) as number);
+      if (storedMode) setMode(JSON.parse(storedMode) as TimerMode);
+      if (storedIsRunning) setIsRunning(JSON.parse(storedIsRunning) as boolean);
+      if (storedCompletedPomodoros)
+        setCompletedPomodoros(JSON.parse(storedCompletedPomodoros) as number);
+    } catch (error) {
+      console.error("Error loading persisted data:", error);
+    }
+  }, []);
 
   const getNextMode = useCallback(
     (currentMode: TimerMode, completed: number): TimerMode => {
@@ -132,6 +164,30 @@ function usePomodoro(): PomodoroHook {
   }, [isRunning, handleCompletion, time]);
 
   const progress = (time / getDurationForMode(mode)) * 100;
+
+  // Persist state changes
+  useEffect(() => {
+    if (!hasInitializedRef.current) return;
+    localStorage.setItem(STORAGE_KEYS.TIME, JSON.stringify(time));
+  }, [time]);
+
+  useEffect(() => {
+    if (!hasInitializedRef.current) return;
+    localStorage.setItem(STORAGE_KEYS.MODE, JSON.stringify(mode));
+  }, [mode]);
+
+  useEffect(() => {
+    if (!hasInitializedRef.current) return;
+    localStorage.setItem(STORAGE_KEYS.IS_RUNNING, JSON.stringify(isRunning));
+  }, [isRunning]);
+
+  useEffect(() => {
+    if (!hasInitializedRef.current) return;
+    localStorage.setItem(
+      STORAGE_KEYS.COMPLETED_POMODOROS,
+      JSON.stringify(completedPomodoros),
+    );
+  }, [completedPomodoros]);
 
   return {
     time,

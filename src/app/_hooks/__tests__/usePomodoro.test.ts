@@ -6,10 +6,13 @@ type HookResult = ReturnType<typeof usePomodoro>;
 describe("usePomodoro", () => {
   beforeEach(() => {
     jest.useFakeTimers();
+    // Clear localStorage before each test
+    localStorage.clear();
   });
 
   afterEach(() => {
     jest.useRealTimers();
+    localStorage.clear();
   });
 
   // Helper function to complete a timer session
@@ -38,7 +41,7 @@ describe("usePomodoro", () => {
     });
   };
 
-  it("should initialize with default values", () => {
+  it("should initialize with default values when no stored data exists", () => {
     const { result } = renderHook(() => usePomodoro());
 
     expect(result.current.time).toBe(25 * 60); // 25 minutes in seconds
@@ -50,6 +53,99 @@ describe("usePomodoro", () => {
     expect(result.current).toHaveProperty("resetTimer");
     expect(result.current).toHaveProperty("resetAll");
     expect(result.current).toHaveProperty("onComplete");
+  });
+
+  it("should initialize with stored values when they exist", () => {
+    // Set up stored values
+    localStorage.setItem("marzano-time", JSON.stringify(1200)); // 20 minutes
+    localStorage.setItem("marzano-mode", JSON.stringify("short-break"));
+    localStorage.setItem("marzano-is-running", JSON.stringify(true));
+    localStorage.setItem("marzano-completed-pomodoros", JSON.stringify(3));
+
+    const { result } = renderHook(() => usePomodoro());
+
+    // Let the initialization effect run
+    act(() => {
+      jest.advanceTimersByTime(0);
+    });
+
+    // Verify initial values were loaded
+    expect(result.current.time).toBe(1200);
+    expect(result.current.mode).toBe("short-break");
+    expect(result.current.completedPomodoros).toBe(3);
+    expect(result.current.isRunning).toBe(true);
+
+    // Stop the timer to prevent infinite loops
+    act(() => {
+      result.current.stopTimer();
+    });
+
+    // Verify timer was stopped
+    expect(result.current.isRunning).toBe(false);
+  });
+
+  it("should persist state changes to localStorage", () => {
+    const { result } = renderHook(() => usePomodoro());
+
+    // Start timer and advance
+    act(() => {
+      result.current.startTimer();
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(5000); // Advance 5 seconds
+    });
+
+    // Check localStorage values
+    expect(JSON.parse(localStorage.getItem("marzano-time") ?? "0")).toBe(
+      25 * 60 - 5,
+    );
+    expect(
+      JSON.parse(localStorage.getItem("marzano-is-running") ?? "false"),
+    ).toBe(true);
+
+    // Complete a pomodoro
+    completeSession(result, 25 * 60);
+
+    // Check localStorage after completion
+    expect(JSON.parse(localStorage.getItem("marzano-mode") ?? "")).toBe(
+      "short-break",
+    );
+    expect(
+      JSON.parse(localStorage.getItem("marzano-completed-pomodoros") ?? "0"),
+    ).toBe(1);
+  });
+
+  it("should handle resetAll with localStorage", () => {
+    // Set up initial stored state
+    localStorage.setItem("marzano-time", JSON.stringify(300));
+    localStorage.setItem("marzano-mode", JSON.stringify("short-break"));
+    localStorage.setItem("marzano-is-running", JSON.stringify(true));
+    localStorage.setItem("marzano-completed-pomodoros", JSON.stringify(2));
+
+    const { result } = renderHook(() => usePomodoro());
+
+    // Reset all progress
+    act(() => {
+      result.current.resetAll();
+    });
+
+    // Check both state and localStorage
+    expect(result.current.mode).toBe("work");
+    expect(result.current.time).toBe(25 * 60);
+    expect(result.current.completedPomodoros).toBe(0);
+    expect(result.current.isRunning).toBe(false);
+
+    expect(JSON.parse(localStorage.getItem("marzano-mode") ?? "")).toBe("work");
+    expect(JSON.parse(localStorage.getItem("marzano-time") ?? "0")).toBe(
+      25 * 60,
+    );
+    expect(
+      JSON.parse(localStorage.getItem("marzano-completed-pomodoros") ?? "-1"),
+    ).toBe(0);
+    expect(
+      JSON.parse(localStorage.getItem("marzano-is-running") ?? "true"),
+    ).toBe(false);
   });
 
   it("should start and stop the timer", () => {
@@ -152,58 +248,6 @@ describe("usePomodoro", () => {
     expect(result.current.time).toBe(5 * 60);
     expect(result.current.completedPomodoros).toBe(2);
     expect(mockCallback).toHaveBeenCalledTimes(3); // Called for both work and break completions
-  });
-
-  it("should reset all progress to work mode", () => {
-    const { result } = renderHook(() => usePomodoro());
-
-    // Complete work session to enter break mode
-    completeSession(result, 25 * 60);
-
-    expect(result.current.mode).toBe("short-break");
-    expect(result.current.time).toBe(5 * 60);
-    expect(result.current.completedPomodoros).toBe(1);
-
-    // Reset all progress
-    act(() => {
-      result.current.resetAll();
-    });
-
-    expect(result.current.mode).toBe("work");
-    expect(result.current.time).toBe(25 * 60);
-    expect(result.current.completedPomodoros).toBe(0);
-    expect(result.current.isRunning).toBe(false);
-  });
-
-  it("should increment completed pomodoros and call onComplete when timer reaches zero", () => {
-    const mockCallback = jest.fn();
-    const { result } = renderHook(() => usePomodoro());
-
-    // Register completion callback
-    act(() => {
-      result.current.onComplete(mockCallback);
-    });
-
-    // Start and advance to just before completion
-    advanceTimer(result, 25 * 60 - 1);
-
-    expect(result.current.time).toBe(1);
-    expect(result.current.completedPomodoros).toBe(0);
-    expect(mockCallback).not.toHaveBeenCalled();
-
-    // Complete the pomodoro
-    act(() => {
-      jest.advanceTimersByTime(1000);
-    });
-    act(() => {
-      jest.runAllTimers();
-    });
-
-    expect(result.current.mode).toBe("short-break");
-    expect(result.current.time).toBe(5 * 60);
-    expect(result.current.completedPomodoros).toBe(1);
-    expect(result.current.isRunning).toBe(false);
-    expect(mockCallback).toHaveBeenCalledTimes(1);
   });
 
   it("should reset all progress", () => {
