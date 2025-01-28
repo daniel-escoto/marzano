@@ -21,16 +21,27 @@ const BUTTON_COLORS = {
   "long-break": "bg-purple-500 hover:bg-purple-600",
 } as const;
 
-const PROGRESS_COLORS = {
-  work: "bg-blue-500",
-  "short-break": "bg-green-500",
-  "long-break": "bg-purple-500",
+const BUTTON_SECONDARY_COLORS = {
+  work: "border-blue-500 text-blue-500 hover:bg-blue-50",
+  "short-break": "border-green-500 text-green-500 hover:bg-green-50",
+  "long-break": "border-purple-500 text-purple-500 hover:bg-purple-50",
 } as const;
 
-function Button({ title, onClick, mode = "work" }: ButtonProps) {
+function Button({
+  title,
+  onClick,
+  mode = "work",
+  variant = "primary",
+}: ButtonProps & { variant?: "primary" | "secondary" }) {
+  const baseClasses = "rounded px-4 py-2 transition-colors border";
+  const colorClasses =
+    variant === "primary"
+      ? `${BUTTON_COLORS[mode]} text-white border-transparent`
+      : `bg-transparent ${BUTTON_SECONDARY_COLORS[mode]}`;
+
   return (
     <button
-      className={`rounded px-4 py-2 text-white transition-colors ${BUTTON_COLORS[mode]}`}
+      className={`${baseClasses} ${colorClasses} w-full`}
       onClick={onClick}
     >
       {title}
@@ -88,7 +99,9 @@ function ResetButton({
   onClick: () => void;
   mode: TimerMode;
 }) {
-  return <Button title="Reset" onClick={onClick} mode={mode} />;
+  return (
+    <Button title="Reset" onClick={onClick} mode={mode} variant="secondary" />
+  );
 }
 
 function ProgressBar({
@@ -101,7 +114,7 @@ function ProgressBar({
   return (
     <div className="h-2 w-full rounded-full bg-gray-200">
       <div
-        className={`h-full rounded-full ${PROGRESS_COLORS[mode]}`}
+        className={`h-full rounded-full ${BUTTON_COLORS[mode]}`}
         style={{ width: `${progress}%` }}
       ></div>
     </div>
@@ -146,14 +159,18 @@ function PomodoroApp() {
     <>
       <div className="flex flex-col items-center justify-center gap-12">
         <Timer time={time} mode={mode} />
-        <div className="flex gap-4">
-          <StartStopToggle
-            isRunning={isRunning}
-            onStart={startTimer}
-            onStop={stopTimer}
-            mode={mode}
-          />
-          <ResetButton onClick={resetTimer} mode={mode} />
+        <div className="flex w-full max-w-md gap-4">
+          <div className="w-2/3">
+            <StartStopToggle
+              isRunning={isRunning}
+              onStart={startTimer}
+              onStop={stopTimer}
+              mode={mode}
+            />
+          </div>
+          <div className="w-1/3">
+            <ResetButton onClick={resetTimer} mode={mode} />
+          </div>
         </div>
         <ProgressBar progress={progress} mode={mode} />
         <div className="flex flex-col items-center gap-4">
