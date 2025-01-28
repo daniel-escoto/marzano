@@ -148,7 +148,7 @@ function PomodoroApp() {
     mode,
   } = usePomodoro();
   const { playSound } = useSound();
-  useUpdateMetadata(time);
+  useUpdateMetadata(time, isRunning);
 
   // Register sound callback
   React.useEffect(() => {
