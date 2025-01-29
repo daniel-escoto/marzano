@@ -61,6 +61,59 @@ const MODE_COLORS = {
   "long-break": "text-purple-600",
 } as const;
 
+function CircularProgress({
+  progress,
+  mode,
+  children,
+}: {
+  progress: number;
+  mode: TimerMode;
+  children: React.ReactNode;
+}) {
+  const radius = 160;
+  const strokeWidth = 8;
+  const normalizedRadius = radius - strokeWidth * 2;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDashoffset = circumference - (progress / 100) * circumference;
+
+  return (
+    <div className="relative">
+      <svg
+        height={radius * 2}
+        width={radius * 2}
+        className="-rotate-90 transform"
+      >
+        {/* Background circle */}
+        <circle
+          stroke="currentColor"
+          fill="transparent"
+          strokeWidth={strokeWidth}
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
+          className="text-gray-200 dark:text-gray-800"
+        />
+        {/* Progress circle */}
+        <circle
+          stroke="currentColor"
+          fill="transparent"
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference + " " + circumference}
+          style={{ strokeDashoffset }}
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
+          strokeLinecap="round"
+          className={`transition-all duration-1000 ${BUTTON_COLORS[mode].replace("bg-", "text-").replace("hover:", "")}`}
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function Timer({ time, mode }: { time: number; mode: TimerMode }) {
   return (
     <div className="flex flex-col items-center gap-2">
@@ -104,23 +157,6 @@ function ResetButton({
   );
 }
 
-function ProgressBar({
-  progress,
-  mode,
-}: {
-  progress: number;
-  mode: TimerMode;
-}) {
-  return (
-    <div className="h-2 w-full rounded-full bg-gray-200">
-      <div
-        className={`h-full rounded-full ${BUTTON_COLORS[mode]}`}
-        style={{ width: `${progress}%` }}
-      ></div>
-    </div>
-  );
-}
-
 export function ResetAllButton({ onClick }: { onClick: () => void }) {
   return (
     <button
@@ -158,7 +194,9 @@ function PomodoroApp() {
   return (
     <>
       <div className="flex flex-col items-center justify-center gap-12">
-        <Timer time={time} mode={mode} />
+        <CircularProgress progress={progress} mode={mode}>
+          <Timer time={time} mode={mode} />
+        </CircularProgress>
         <div className="flex w-full max-w-md gap-4">
           <div className="w-2/3">
             <StartStopToggle
@@ -172,7 +210,6 @@ function PomodoroApp() {
             <ResetButton onClick={resetTimer} mode={mode} />
           </div>
         </div>
-        <ProgressBar progress={progress} mode={mode} />
         <div className="flex flex-col items-center gap-4">
           <PomodoroTracker count={completedPomodoros} />
           {completedPomodoros > 0 && <ResetAllButton onClick={resetAll} />}
